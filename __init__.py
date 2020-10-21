@@ -1,64 +1,114 @@
-# WeatherPress.py - A simple, Raspberry Pi based weather station, that posts
-# to a WordPress blog.
-# ------------------------------------------------------------------------------
-
-import time
-import Si7021
-import pigpio
-
-pi = pigpio.pi()
-s = Si7021.sensor(pi)
-
-# set the resolution
-# 0 denotes the maxium available: Humidity 12 bits, Temperature 14 bits
-# See the documentation for more details
-s.set_resolution(0)
-
-# get the environment data
-temperature = s.temperature()
-humidity = s.humidity()
-
-print("{:.3f} °C".format(temperature) + " | {:.3f} %rH".format(humidity))
-
-s.cancel()
-pi.stop()
-
-# Post the data to a WordPress blog
+from modules import cbpi
+from thread import start_new_thread
+import logging
+#import urllib, json, httplib, requests
 
 from wordpress_xmlrpc import Client
 from wordpress_xmlrpc.methods import posts
 from wordpress_xmlrpc import WordPressPost
 
-textHumidity = "Relative Humidity is : %.3f %%rH" %humidity
-textTemperature = "Temperature in Celsius is : %.3f °C" %temperature
+DEBUG = False
+Wordpress_Domain = None
+Wordpress_Username = None
+Wordpress_Password = None
+Wordpress_Tag = None
+Wordpress_Category = None
 
-print('preparing post...')
+drop_first = None
 
-import yaml
-with open("WeatherPress.config.yml", "r") as configFile:
-    config = yaml.safe_load(configFile)
+def log(s):
+    if DEBUG:
+        s = "IOT: " + s
+        cbpi.app.logger.info(s)
 
-blog = Client(config['WordPress']['xmlRcpApiUrl'],
-              config['WordPress']['username'],
-              config['WordPress']['password'])
+def WordpressDomain():
+    global Wordpress_Domain
+    Wordpress_Domain = cbpi.get_config_parameter("Wordpress_Domain", None)
+    if Wordpress_Domain is None:
+        log("Init Wordpress Config Domain name")
+        try:
+            cbpi.add_config_parameter("Wordpress_Domain", "", "text", "Wordpress base domain site address")
+        except:
+            cbpi.notify("Wordpress Error", "Unable to update domain name parameter", type="danger")
 
-print('posting...')
+def WordpressUsername():
+    global Wordpress_Username
+    Wordpress_Username = cbpi.get_config_parameter("Wordpress_Username", None)
+    if Wordpress_Username is None:
+        log("Init Wordpress Config Username")
+        try:
+            cbpi.add_config_parameter("Wordpress_Username", "", "text", "Wordpress Site Username")
+        except:
+            cbpi.notify("Wordpress Error", "Unable to update username parameter", type="danger")
 
-post = WordPressPost()
-# Create a title with some simple styling classes
-post.title = ("{:.1f} <span class='unity'>°C</span>".format(temperature) +
-              "&nbsp;&nbsp;&nbsp;"+
-              "{:.0f} <span class='unity'>%rH</span>".format(humidity))
-post.content = textTemperature + ' ' + textHumidity
-post.terms_names = {
-        'post_tag': [config['WordPress']['tag']],
-        'category': [config['WordPress']['category']],
-}
-post.id = blog.call(posts.NewPost(post))
-# Always publish these posts
-print('publishing...')
-post.post_status = 'publish'
-blog.call(posts.EditPost(post.id, post))
+def WordpressPassword():
+    global Wordpress_Password
+    Wordpress_Password = cbpi.get_config_parameter("Wordpress_Password", None)
+    if Wordpress_Password is None:
+        log("Init Wordpress Password")
+        try:
+            cbpi.add_config_parameter("Wordpress_Password", "", "text", "Wordpress user password")
+        except:
+            cbpi.notify("Wordpress Error", "Unable to update config parameter", type="danger")
+            
+def WordpressTag():
+    global Wordpress_Tag
+    Wordpress_Tag = cbpi.get_config_parameter("Wordpress_Tag", None)
+    if Wordpress_Tag is None:
+        log("Init Wordpress Tag")
+        try:
+            cbpi.add_config_parameter("Wordpress_Tag", "", "text", "Wordpress update tag")
+        except:
+            cbpi.notify("Wordpress Error", "Unable to update config parameter", type="danger")
 
-# Report success
-print(post.title + ' publicly posted to ' + config['WordPress']['xmlRcpApiUrl'])
+def WordpressCategory():
+    global Wordpress_Category
+    Wordpress_Category = cbpi.get_config_parameter("Wordpress_Category", None)
+    if Wordpress_Category is None:
+        log("Init Wordpress Category")
+        try:
+            cbpi.add_config_parameter("Wordpress_Category", "", "text", "Wordpress update category")
+        except:
+            cbpi.notify("Wordpress Error", "Unable to update config parameter", type="danger")
+            
+@cbpi.initalizer(order=9001)
+def init(cbpi):
+    cbpi.app.logger.info("Wordpress plugin Initialize")
+    WordpressDomain()
+    WordpressUsername()
+    WordpressPassword()
+    WordpressTag()
+    WordpressCategory()
+
+@cbpi.backgroundtask(key="wordpress_task", interval=60)
+def wordpress_background_task(api):
+    log("IOT background task")
+    global drop_first
+    if drop_first is None:
+        drop_first = False
+        return False
+    cnt = 1
+    dataT= ""
+    dataU= "{"
+    for key, value in cbpi.cache.get("sensors").iteritems():
+        dataT += ", 'field%s':'%s'" % (cnt, value.instance.last_value)
+        dataU += ", " if key >1 else ""
+        dataU += "\"%s\":%s" % (value.name, value.instance.last_value)
+        cnt += 1
+    dataT += "}"
+    log("Wordpress Update")
+    
+    post = WordPressPost()
+    # Create a title with some simple styling classes
+    post.title = ("{:.1f} <span class='unity'>°C</span>".format(temperature) +
+                  "&nbsp;&nbsp;&nbsp;"+
+                  "{:.0f} <span class='unity'>%rH</span>".format(humidity))
+    post.content = dataT
+    post.terms_names = {
+            'post_tag': [Wordpress_Tag],
+            'category': [Wordpress_Category],
+    }
+    post.id = blog.call(posts.NewPost(post))
+    # Always publish these posts
+    post.post_status = 'publish'
+    blog.call(posts.EditPost(post.id, post))
