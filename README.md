@@ -21,3 +21,4 @@ CraftBeerPi Plugin to upload data to Wordpress website
 
 ## Credits
 - Marcel https://github.com/suterma/WeatherPress
+- Atle https://github.com/aravndal/ThingSpeak
