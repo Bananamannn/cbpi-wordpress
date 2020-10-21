@@ -1,11 +1,10 @@
 from modules import cbpi
 from thread import start_new_thread
+import datetime 
 import logging
-#import urllib, json, httplib, requests
 
-from wordpress_xmlrpc import Client
+from wordpress_xmlrpc import Client, WordPressPost
 from wordpress_xmlrpc.methods import posts
-from wordpress_xmlrpc import WordPressPost
 
 DEBUG = False
 Wordpress_Domain = None
@@ -98,11 +97,11 @@ def wordpress_background_task(api):
     dataT += "}"
     log("Wordpress Update")
     
+    blog = Client("https://" + "/xmlrpc.php", Wordpress_Username, Wordpress_Password)
     post = WordPressPost()
     # Create a title with some simple styling classes
-    post.title = ("{:.1f} <span class='unity'>°C</span>".format(temperature) +
-                  "&nbsp;&nbsp;&nbsp;"+
-                  "{:.0f} <span class='unity'>%rH</span>".format(humidity))
+    e = datetime.datetime.now()
+    post.title = e.strftime("%Y-%m-%d %H:%M:%S")
     post.content = dataT
     post.terms_names = {
             'post_tag': [Wordpress_Tag],
