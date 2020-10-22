@@ -3,9 +3,9 @@
 CraftBeerPi Plugin to upload data to Wordpress website
 
 ## Required packages to install:
-- `sudo apt-get install python3` Installing python3 (if not available, e.g. in Raspian Lite)
-- `sudo apt-get install python3-pip` Installing pip (if not available)
-- `sudo pip3 install python-wordpress-xmlrpc` The WordPress XML-RPC API
+- `sudo apt-get install python` Installing python3 (if not available, e.g. in Raspian Lite)
+- `sudo apt-get install python-pip` Installing pip (if not available)
+- `sudo pip2 install python-wordpress-xmlrpc` The WordPress XML-RPC API
 
 ## Usage
 1. Install repo packages listed above
