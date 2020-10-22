@@ -97,7 +97,8 @@ def wordpress_background_task(api):
     post = WordPressPost()
     # Create a title with some simple styling classes
     e = datetime.datetime.now()
-    post.title = e.strftime("%Y-%m-%d %H:%M:%S")
+#    post.title = e.strftime("%Y-%m-%d %H:%M:%S")
+    post.title = e.strftime("%x") + " " +  e.strftime("%X")
     post.content = dataU
     post.terms_names = {
             'post_tag': [Wordpress_Tag],
