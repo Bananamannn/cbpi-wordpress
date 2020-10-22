@@ -26,7 +26,7 @@ def WordpressDomain():
     if Wordpress_Domain is None:
         log("Init Wordpress Config Domain name")
         try:
-            cbpi.add_config_parameter("Wordpress_Domain", "", "text", "Wordpress base domain site address")
+            cbpi.add_config_parameter("Wordpress_Domain", "", "text", "Wordpress base domain site address. E.g. https://yourdomainname.wordpress.com/")
         except:
             cbpi.notify("Wordpress Error", "Unable to update domain name parameter", type="danger")
 
