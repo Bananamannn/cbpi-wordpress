@@ -87,14 +87,12 @@ def wordpress_background_task(api):
         drop_first = False
         return False
     cnt = 1
-    dataT= ""
     dataU= "{"
     for key, value in cbpi.cache.get("sensors").iteritems():
-        dataT += ", 'field%s':'%s'" % (cnt, value.instance.last_value)
         dataU += ", " if key >1 else ""
         dataU += "\"%s\":%s" % (value.name, value.instance.last_value)
         cnt += 1
-    dataT += "}"
+    dataU += "}"
     log("Wordpress Update")
     
     blog = Client(Wordpress_Domain + "xmlrpc.php", Wordpress_Username, Wordpress_Password)
