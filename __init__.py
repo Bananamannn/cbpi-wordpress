@@ -102,7 +102,7 @@ def wordpress_background_task(api):
     # Create a title with some simple styling classes
     e = datetime.datetime.now()
     post.title = e.strftime("%Y-%m-%d %H:%M:%S")
-    post.content = dataT
+    post.content = dataU
     post.terms_names = {
             'post_tag': [Wordpress_Tag],
             'category': [Wordpress_Category],
