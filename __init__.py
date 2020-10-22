@@ -97,7 +97,7 @@ def wordpress_background_task(api):
     dataT += "}"
     log("Wordpress Update")
     
-    blog = Client("https://" + "/xmlrpc.php", Wordpress_Username, Wordpress_Password)
+    blog = Client(Wordpress_Domain + "xmlrpc.php", Wordpress_Username, Wordpress_Password)
     post = WordPressPost()
     # Create a title with some simple styling classes
     e = datetime.datetime.now()
