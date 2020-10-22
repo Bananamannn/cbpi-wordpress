@@ -79,19 +79,17 @@ def init(cbpi):
     WordpressTag()
     WordpressCategory()
 
-@cbpi.backgroundtask(key="wordpress_task", interval=60)
+@cbpi.backgroundtask(key="wordpress_task", interval=300)
 def wordpress_background_task(api):
     log("IOT background task")
     global drop_first
     if drop_first is None:
         drop_first = False
         return False
-    cnt = 1
     dataU= "{"
     for key, value in cbpi.cache.get("sensors").iteritems():
         dataU += ", " if key >1 else ""
         dataU += "\"%s\":%s" % (value.name, value.instance.last_value)
-        cnt += 1
     dataU += "}"
     log("Wordpress Update")
     
