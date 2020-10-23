@@ -1,6 +1,6 @@
 from modules import cbpi
 from thread import start_new_thread
-import datetime 
+import time 
 import logging
 
 from wordpress_xmlrpc import Client, WordPressPost
@@ -12,8 +12,6 @@ Wordpress_Username = None
 Wordpress_Password = None
 Wordpress_Tag = None
 Wordpress_Category = None
-
-#drop_first = None
 
 def log(s):
     if DEBUG:
@@ -82,10 +80,7 @@ def init(cbpi):
 @cbpi.backgroundtask(key="wordpress_task", interval=300)
 def wordpress_background_task(api):
     log("IOT background task")
-#    global drop_first
-#    if drop_first is None:
-#        drop_first = False
-#        return False
+
     data1= "{"
     for key1, value in cbpi.cache.get("sensors").iteritems():
         data1 += ", " if key1 >1 else ""
@@ -93,9 +88,9 @@ def wordpress_background_task(api):
     data1 += "}"
     
     data2= "{"
-    for key2, value in cbpi.cache.get("actors").iteritems():
+    for key2, value2 in cbpi.cache.get("actors").iteritems():
         data2 += ", " if key2 >1 else ""
-        data2 += "\"%s\":%s" % (value.name, value.instance.last_value)
+        data2 += "\"%s\":%s,%s" % (value2.name, value2.state, value2.power)
     data2 += "}"
     
     log("Wordpress Update")
@@ -103,9 +98,7 @@ def wordpress_background_task(api):
     blog = Client(Wordpress_Domain + "xmlrpc.php", Wordpress_Username, Wordpress_Password)
     post = WordPressPost()
     # Create a title with some simple styling classes
-    e = datetime.datetime.now()
-#    post.title = e.strftime("%Y-%m-%d %H:%M:%S")
-    post.title = e.strftime("%x") + " " +  e.strftime("%X")
+    post.title = time.strftime("%y/%m/%d %H:%M:%S", time.localtime())
     post.content = data1 + "<br />" + data2
     post.terms_names = {
             'post_tag': [Wordpress_Tag],
