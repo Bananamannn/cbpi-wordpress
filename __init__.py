@@ -13,7 +13,7 @@ Wordpress_Password = None
 Wordpress_Tag = None
 Wordpress_Category = None
 
-drop_first = None
+#drop_first = None
 
 def log(s):
     if DEBUG:
@@ -82,15 +82,22 @@ def init(cbpi):
 @cbpi.backgroundtask(key="wordpress_task", interval=300)
 def wordpress_background_task(api):
     log("IOT background task")
-    global drop_first
-    if drop_first is None:
-        drop_first = False
-        return False
-    dataU= "{"
+#    global drop_first
+#    if drop_first is None:
+#        drop_first = False
+#        return False
+    data1= "{"
     for key, value in cbpi.cache.get("sensors").iteritems():
-        dataU += ", " if key >1 else ""
-        dataU += "\"%s\":%s" % (value.name, value.instance.last_value)
-    dataU += "}"
+        data1 += ", " if key >1 else ""
+        data1 += "\"%s\":%s" % (value.name, value.instance.last_value)
+    data1 += "}"
+    
+    data2= "{"
+    for key, value in cbpi.cache.get("actors").iteritems():
+        data2 += ", " if key >1 else ""
+        data2 += "\"%s\":%s" % (value.name, value.instance.last_value)
+    data2 += "}"
+    
     log("Wordpress Update")
     
     blog = Client(Wordpress_Domain + "xmlrpc.php", Wordpress_Username, Wordpress_Password)
@@ -99,7 +106,7 @@ def wordpress_background_task(api):
     e = datetime.datetime.now()
 #    post.title = e.strftime("%Y-%m-%d %H:%M:%S")
     post.title = e.strftime("%x") + " " +  e.strftime("%X")
-    post.content = dataU
+    post.content = data1 + "<br />" + data2
     post.terms_names = {
             'post_tag': [Wordpress_Tag],
             'category': [Wordpress_Category],
