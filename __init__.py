@@ -87,14 +87,14 @@ def wordpress_background_task(api):
 #        drop_first = False
 #        return False
     data1= "{"
-    for key, value in cbpi.cache.get("sensors").iteritems():
-        data1 += ", " if key >1 else ""
+    for key1, value in cbpi.cache.get("sensors").iteritems():
+        data1 += ", " if key1 >1 else ""
         data1 += "\"%s\":%s" % (value.name, value.instance.last_value)
     data1 += "}"
     
     data2= "{"
-    for key, value in cbpi.cache.get("actors").iteritems():
-        data2 += ", " if key >1 else ""
+    for key2, value in cbpi.cache.get("actors").iteritems():
+        data2 += ", " if key2 >1 else ""
         data2 += "\"%s\":%s" % (value.name, value.instance.last_value)
     data2 += "}"
     
